@@ -5,6 +5,9 @@
 #define scan(x)     scanf("%d",&x)
 #define inf         1e9
 
+FILE *fp;
+FILE *fo;
+
 int max(int a,int b)
 {
     if(a>b) return a;
@@ -159,7 +162,9 @@ node* left_rotate(avl* tree,node *x)
     node* tmp=y->left;
 
     y->left=x;
+    x->parent=y;
     x->right=tmp;
+    if(tmp) tmp->parent=x;
 
     if(xp)
     {
@@ -183,9 +188,12 @@ node* right_rotate(avl* tree,node *x)
 {
     node* xp=x->parent;
     node* y=x->left;
+    node* tmp=y->right;
 
-    x->left=y->right;
     y->right=x;
+    x->parent=y;
+    x->left=tmp;
+    if(tmp) tmp->parent=x;
 
     if(xp)
     {
@@ -322,7 +330,6 @@ avl* insert(avl* tree,int val)
       }
 
     }
-
     return tree;
 }
 
@@ -331,6 +338,9 @@ avl* del(avl* tree,int val)
     int a;
     node* z=search_node(tree,val);
     //printf("%d ",z->data);
+    
+    if(z)
+    {
     node* y; //y has to be deleted
     node* x;
     if(z->left==NULL||z->right==NULL)
@@ -351,20 +361,22 @@ avl* del(avl* tree,int val)
     else if(y->parent->right==y)  y->parent->right=x;
 
     if(y!=z) z->key=y->key;
-
+    
     node* curr=y->parent;
-
+    
     while(curr)
     {
-        curr=set_height(curr);
+	   node *tmp1 = curr->parent;
+            curr=set_height(curr);
 
-        if(balance_factor(curr)>1 && balance_factor(curr->left)>=0 )
-        {
+         if(balance_factor(curr)>1 && balance_factor(curr->left)>=0 )
+        { 		
             curr->parent=right_rotate(tree,curr);
-            curr=curr->parent;
+            
+	    curr=tmp1;
         }
-        else if(balance_factor(curr)>1 && balance_factor(curr->left)<0)
-        {
+        else if(curr->parent && balance_factor(curr)>1 && balance_factor(curr->left)<0)
+        {	
             node* tmp=curr->parent;
 
             curr=curr->left;
@@ -374,24 +386,27 @@ avl* del(avl* tree,int val)
             curr=tmp;
         }
 
-        else if(balance_factor(curr)<-1 && balance_factor(curr->left)<=0)
-        {
-            curr->parent=left_rotate(tree,curr);
-            curr=curr->parent;
+        else if(curr->parent && balance_factor(curr)<-1 && balance_factor(curr->right)<=0)
+       {
+	    curr->parent=left_rotate(tree,curr);
+            curr=tmp1;
         }
-        else if(balance_factor(curr)<-1 && balance_factor(curr->left)>0)
+        else if(balance_factor(curr)<-1 && balance_factor(curr->right)>0)
         {
-            node* tmp=curr->parent;
-            curr=curr->left;
+	    node* tmp=curr->parent;
+            curr=curr->right;
             curr->parent=right_rotate(tree,curr);
             z=left_rotate(tree,curr->parent->parent);
 
             curr=tmp;
         }
 
-        else curr=curr->parent;
+        else 
+	{
+		curr=curr->parent;
+        }
     }
-
+   }  
    return tree;
 }
 
@@ -400,20 +415,20 @@ void preorder(node* root)
 {
     if(root && (root->left||root->right))
     {
-       print(root->key);
+       fprintf(fo,"%d",root->key);
 
-       printf("(");
+       fprintf(fo,"(");
        preorder(root->left);
-       printf(")");
+       fprintf(fo,")");
        //print(root->height);
-       printf("(");
+       fprintf(fo,"(");
        preorder(root->right);
-       printf(")");
+       fprintf(fo,")");
     }
     else if(root)
     {
         //printf("(");
-        print(root->key);
+        fprintf(fo,"%d",root->key);
         //printf(")");
 
     }
@@ -421,10 +436,10 @@ void preorder(node* root)
 
 void printTree(avl* tree)
 {
-    printf("(");
+    fprintf(fo,"(");
     preorder(tree->root);
-    printf(")");
-    printf("\n");
+    fprintf(fo,")");
+    fprintf(fo,"\n");
 }
 
 int isAVL(node* root)
@@ -447,11 +462,94 @@ int isAVL(node* root)
 
 int main()
 {
+    fp=fopen("input.txt","r");
+    fo=fopen("output.txt","w");
     avl* tree=create_tree();
-
-    int n;
+    
+    int n,k;
     int i;
-    scan(n);
+    
+    while(1)
+    {
+     
+       fscanf(fp,"%d",&k);
+      
+       if(k==9) break;
+
+       else if(k==1)
+       {
+         fscanf(fp,"%d",&n);
+         tree=insert(tree,n);
+        // fprintf(fo,"%d\n",isAVL(tree->root));
+       }
+
+       else if(k==2)
+       {
+         fscanf(fp,"%d",&n);
+         tree=del(tree,n);
+       }
+
+       else if(k==3)
+       {
+	    fscanf(fp,"%d",&n);
+            node* tmp=search_node(tree,n);
+            
+	    tmp=left_rotate(tree,tmp);
+
+	    while(tmp)
+	    {
+	      set_height(tmp);
+	      tmp=tmp->parent;
+	    }
+       }
+
+       else if(k==4)
+       {
+         fscanf(fp,"%d",&n);
+	 node *tmp=search_node(tree,n);
+	 tmp=right_rotate(tree,tmp);
+         
+	 while(tmp)
+	 {
+	  set_height(tmp);
+	  tmp=tmp->parent;
+	 }
+       }
+
+       else if(k==5)
+       {
+         fscanf(fp,"%d",&n);
+	 node* tmp=search_node(tree,n);
+
+	 fprintf(fo,"%d\n",balance_factor(tmp));
+       }
+
+       else if(k==6)
+        printTree(tree);
+
+       else if(k==7)
+       {
+         if(isAVL(tree->root)==1)
+		 fprintf(fo,"TRUE\n");
+	 else fprintf(fo,"FALSE\n");
+       }
+
+       else if(k==8)
+       {
+          fscanf(fp,"%d",&n);
+	  node* tmp=search_node(tree,n);
+
+	  if(tmp)
+	     fprintf(fo,"TRUE\n");
+	  else fprintf(fo,"FALSE\n");
+       
+       }
+    
+    }
+
+    //printf("%d",search_node(tree,53)->key);
+  
+    /*scan(n);
     int a[n];
     for(i=0;i<n;i++)
     {
@@ -461,6 +559,8 @@ int main()
     printTree(tree);
     tree=del(tree,10);
     printTree(tree);
+   */
+
 
     return 0;
 }

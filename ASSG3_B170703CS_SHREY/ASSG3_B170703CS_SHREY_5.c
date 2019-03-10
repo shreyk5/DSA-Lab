@@ -1,9 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 
 #define print(x)     printf("%d ",x)
 #define sprint(s)    printf("%s ",s);
 #define forn(i,a,n)  for(int i=a;i<n;i++)
+
+FILE *fp;
+FILE *fo;
 
 struct dynamic_array
 {
@@ -64,35 +68,218 @@ void slice(dynamic_array* vect,int a,int b)
   if(b>=a && a>=1 && b<=vect->size)
   {
     forn(i,a-1,b)
-     print(vect->arr[i]);
-
-    printf("\n");
+    {
+	if(i==(b-1)) fprintf(fo,"%d",vect->arr[i]);    
+	else         fprintf(fo,"%d ",vect->arr[i]);
+    }
+   // fprintf(fo,"\n");
   }
 
   else
   {
-    printf("INVALID RANGE\n");
+    fprintf(fo,"INVALID RANGE\n");
   }
 
 }
 
+int member(dynamic_array* vect,int x)
+{
+   forn(i,0,vect->size)
+   {
+     if(vect->arr[i]==x)
+	     return 1;
+   }
+  
+   return 0;
+}
+
+
 int main()
 {
-  dynamic_array *vect=init();
-  dynamic_array* vect2=init();
-
-  forn(i,1,10)
-	vect=append(vect,i);
+  fp=fopen("input.txt","r");
+  fo=fopen("output.txt","w");
   
-  forn(i,20,24) vect2=append(vect2,i);
+  char ch;
+  char *str;
+  int i,j,n,num;
 
-  slice(vect,1,9);
-  vect=concatenate(vect,vect2);
+  while(fscanf(fp,"%c",&ch)!=EOF)
+  {
+     str=(char*)malloc(sizeof(char)*100);	  
+     if(ch=='x')
+	     break;
 
-  slice(vect,1,12);
-  
-  print(vect->size);
-  print(vect2->size);
+     else if(ch=='a')
+     {
+        fscanf(fp,"%[^\n]s",str);   
+	dynamic_array *vect=init();
+
+	n=strlen(str);
+        
+	for(i=2;i<n;i++)
+	{
+	    num=0;
+	   while(!(str[i]==' ' || str[i]==')'))
+	   { 
+	     num=num*10;
+	     num+=(str[i]-48);
+	     i++;
+             
+	     if(str[i]==')') break;
+	   }
+
+         vect=append(vect,num);
+	 if(str[i]==')') break;
+	} 
+	 i+=2;
+         num=0;
+	 for(;i<n;i++)
+           num=num*10+(str[i]-48);
+       	 vect=append(vect,num);
+
+	 fprintf(fo,"(");
+         slice(vect,1,vect->size);
+	 fprintf(fo,")\n");
+     }
+    
+     else if(ch=='c')
+     {
+       dynamic_array* vect1=init();
+       dynamic_array* vect2=init();
+
+       fscanf(fp,"%[^\n]s",str);
+       n=strlen(str);
+       
+       for(i=2;i<n;i++)
+       {
+         num=0;
+
+	 while(!(str[i]==' ' || str[i]==')'))
+         {
+	   num=num*10+(str[i]-48);
+	   i++;
+	 }
+       	 vect1=append(vect1,num);
+	 if(str[i]==')')
+	 {
+	    i+=3;
+	    break;
+	 } 
+       }
+
+       for(;i<n;i++)
+       {
+         num=0;
+	 while(!(str[i]==' ' || str[i]==')'))
+	{
+	  num=num*10+(str[i]-48);
+	  i++;
+	}
+      
+	 vect2=append(vect2,num);
+         if(str[i]==')')
+		 break;
+       }
+
+       vect1=concatenate(vect1,vect2);
+
+       fprintf(fo,"(");
+       slice(vect1,1,vect1->size);
+       fprintf(fo,")\n");
+     }
+
+     else if(ch=='m')
+     {
+        fscanf(fp,"%[^\n]s",str);   
+	dynamic_array *vectm=init();
+
+	n=strlen(str);
+        for(i=2;i<n;i++)
+	{
+	    num=0;
+	   while(!(str[i]==' ' || str[i]==')'))
+	   { 
+	     num=num*10;
+	     num+=(str[i]-48);
+	     i++;
+             
+	     if(str[i]==')') break;
+	   }
+         vectm=append(vectm,num);
+	 if(str[i]==')') break;
+	} 
+	 i+=2;
+         num=0;
+	 for(;i<n;i++)
+           num=num*10+(str[i]-48);
+         
+         fprintf(fo,"%d\n",member(vectm,num));         
+
+     }
+
+     else if(ch=='l')
+     {
+       fscanf(fp,"%[^\n]s",str);   
+       dynamic_array *vectl=init();
+
+	n=strlen(str);
+        
+	for(i=2;i<n;i++)
+	{
+	    num=0;
+	   while(!(str[i]==' ' || str[i]==')'))
+	   { 
+	     num=num*10;
+	     num+=(str[i]-48);
+	     i++;
+             
+	     if(str[i]==')') break;
+	   }
+
+         vectl=append(vectl,num);
+	 if(str[i]==')') break;
+	} 
+      
+	fprintf(fo,"%d\n",length(vectl));
+     
+     }
+
+     else if(ch=='s')
+     {
+       fscanf(fp,"%[^\n]s",str);   
+	dynamic_array *vects=init();
+
+	n=strlen(str);
+        for(i=2;i<n;i++)
+	{
+	    num=0;
+	   while(!(str[i]==' ' || str[i]==')'))
+	   { 
+	     num=num*10;
+	     num+=(str[i]-48);
+	     i++;
+             
+	     if(str[i]==')') break;
+	   }
+         vects=append(vects,num);
+	 if(str[i]==')') break;
+	} 
+	 i+=2;
+         int a=0;
+	 for(;str[i]!=' ';i++)
+           a=a*10+(str[i]-48);
+         
+	 i++;
+
+	 int b=0;
+	 for(;i<n;i++)
+            b=b*10+(str[i]-48);
+          
+         slice(vects,a,b);
+	 fprintf(fo,"\n");
+     }
+
+   }
 
   return 0;
 

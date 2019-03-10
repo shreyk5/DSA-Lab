@@ -30,11 +30,15 @@ struct disjoint_set* init(int t)
 
 struct disjoint_set* make_set(struct disjoint_set *ds,int i)
 {
-    if(ds->parent[i]!=-1) fprintf(fo,"PRESENT\n");
+    if(ds->parent[i]!=-1)
+    {
+	    if(ds->type==0)
+	    fprintf(fo,"PRESENT\n");
+    }
     
     else
     {
-     if(ds->type==0) fprintf(fo,"%d ",i);	    
+     if(ds->type==0) fprintf(fo,"%d\n",i);	    
      ds->parent[i]=i;
      ds->rank[i]=0;
     }
@@ -60,8 +64,13 @@ int find(struct disjoint_set *ds,int i)
 
 struct disjoint_set* uni(struct disjoint_set *ds,int x,int y)
 {
-   if(ds->parent[x]==-1 ||ds-> parent[y]==-1)
-     fprintf(fo,"ERROR\n");
+   if((ds->parent[x]==-1 ||ds-> parent[y]==-1))
+   {
+     if(ds->type==3)	    
+     fprintf(fo,"ERROR ");
+
+     else fprintf(fo,"ERROR ");
+   }
 
    else
    {
@@ -139,7 +148,7 @@ int main()
 	fscanf(fp,"%d",&n);     
        for(i=0;i<4;i++)
 	    ds[i]=make_set(ds[i],n);
-       fprintf(fo,"\n");
+       //fprintf(fo,"\n");
      }    
 
      else if(ch=='u')
@@ -162,7 +171,7 @@ int main()
 	for(i=0;i<4;i++)       
          fprintf(fo,"%d ",find(ds[i],n));
 
-	fprintf(fo,"\n");
+ 	fprintf(fo,"\n");
        }
      }
 
